@@ -16,6 +16,10 @@ pub fn random_excursions_variant_test(data: &BitsData) -> Result<[TestResultT; 1
 
     let n = data.len();
 
+    if n < 1_000_000 {
+        return Err("n must be at least 1000000".to_string());
+    }
+
     let mut s_k = vec![isize::default(); n];
     s_k[0] = 2 * (data[0] as isize) - 1;
 

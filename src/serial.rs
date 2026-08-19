@@ -12,7 +12,13 @@ use super::*;
 /// sequences have uniformity; that is, every m-bit pattern has the same chance of appearing as every other
 /// m-bit pattern. Note that for m = 1, the Serial test is equivalent to the Frequency test.
 /// `m` the length in bits of a block.
-pub fn serial_test(data: &BitsData, m: usize) -> [TestResultT; 2] {
+pub fn serial_test(data: &BitsData, m: usize) -> Result<[TestResultT; 2], String> {
+    let n = data.len() as f64;
+
+    if m as f64 >= n.log2().floor() - 2.0 {
+        return Err("m and n must fulfil m < floor(log2(n)) - 2".to_string());
+    }
+
     let psi: Vec<_> = (0..3_usize)
         .into_par_iter()
         .map(|i| psi2(data, m - i))
@@ -26,10 +32,10 @@ pub fn serial_test(data: &BitsData, m: usize) -> [TestResultT; 2] {
         gamma_ur(2_f64.powi(m as i32 - 2) / 2_f64, del2 / 2_f64),
     ];
 
-    [
+    Ok([
         (p[0] >= TEST_THRESHOLD, p[0]),
         (p[1] >= TEST_THRESHOLD, p[1]),
-    ]
+    ])
 }
 
 #[inline]

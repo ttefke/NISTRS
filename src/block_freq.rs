@@ -18,11 +18,39 @@ use super::*;
 /// ```
 pub fn block_frequency_test(data: &super::BitsData, m: usize) -> Result<TestResultT, String> {
     let nbits = data.len();
-    if nbits < m {
-        return Err("Size of block must be lower number of bits".to_string());
+
+    if nbits < 100 {
+        return Err("At least 100 bits are required to run the block frequency test.".to_string());
+    } else if nbits < m {
+        return Err("Size of block must be lower than number of bits".to_string());
     }
 
     let n_blocks = nbits / m;
+
+    if nbits < n_blocks * m {
+        return Err(
+            "Number of provided bits is smaller than amount of storage in the blocks.".to_string(),
+        );
+    }
+
+    if m < 20 {
+        return Err("The block size m should be at least 20.".to_string());
+    }
+
+    let min_m = 0.01 * nbits as f64;
+    if m as f64 <= min_m {
+        return Err(format!(
+            "Each block must hold more than 1% of the input, increase m to at least {}",
+            min_m as u64 + 1
+        ));
+    }
+
+    if n_blocks >= 100 {
+        return Err(format!(
+            "Too many blocks, increase m to a maximum of {}",
+            nbits / 99
+        ));
+    }
 
     let mut sum = f64::default();
     for i in 0..n_blocks {

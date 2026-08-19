@@ -7,7 +7,7 @@ use super::*;
 /// length of a compressed sequence). The purpose of the test is to detect whether or not the sequence can be
 /// significantly compressed without loss of information. A significantly compressible sequence is
 /// considered to be non-random.
-pub fn universal_test(data: &BitsData) -> TestResultT {
+pub fn universal_test(data: &BitsData) -> Result<[TestResultT; 4], String> {
     const EXPECTED_VALUE: [f64; 17] = [
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.2177052, 6.1962507, 7.1836656, 8.1764248, 9.1723243,
         10.170032, 11.168765, 12.168070, 13.167693, 14.167488, 15.167379,
@@ -42,9 +42,25 @@ pub fn universal_test(data: &BitsData) -> TestResultT {
     let q = 10 * p;
     let k = n_bits / l - q;
 
-    let c = 0.7 - 0.8 / (l as f64)
-        + (4_f64 + 32_f64 / (l as f64)) * (k as f64).powf(-3_f64 / (l as f64)) / 15_f64;
-    let sigma = c * (VARIANCE[l] / (k as f64)).sqrt();
+    if n_bits < (q + k) * l {
+        return Err("n is too small!".to_string());
+    }
+
+    if l < 6 || l > 16 {
+        return Err("Invalid value of l, check size of n!".to_string());
+    }
+
+    let c = [
+        0.7 - 0.8 / (l as f64)
+        + (4_f64 + 32_f64 / (l as f64)) * (k as f64).powf(-3_f64 / (l as f64)) / 15_f64,
+        0.7 - 0.8 / (l as f64)
+        + (1.6_f64 + 12.8_f64 / (l as f64)) * (k as f64).powf(-4_f64 / (l as f64))
+    ];
+
+    let sigma = [
+        c[0] * (VARIANCE[l] / (k as f64)).sqrt(),
+        c[1] * (VARIANCE[l] / (k as f64)).sqrt()
+    ];
 
     let mut t = vec![usize::default(); p];
 
@@ -74,8 +90,25 @@ pub fn universal_test(data: &BitsData) -> TestResultT {
     }
 
     let phi = sum / (k as f64);
-    let arg = (phi - EXPECTED_VALUE[l]).abs() / (2_f64.sqrt() * sigma);
-    let p = erfc(arg);
+    let arg = [
+        (phi - EXPECTED_VALUE[l]).abs() / (2_f64.sqrt() * sigma[0]),
+        (phi - EXPECTED_VALUE[l]).abs() / (2_f64.sqrt() * sigma[1]),
+        // t-test
+        (phi - EXPECTED_VALUE[l]).abs() / sigma[0],
+        (phi - EXPECTED_VALUE[l]).abs() / sigma[1],
+    ];
 
-    (p >= TEST_THRESHOLD, p)
+    let p = [
+        erfc(arg[0]),
+        erfc(arg[1]),
+        erfc(arg[2]),
+        erfc(arg[3])
+    ];
+
+    Ok([
+        (p[0] >= TEST_THRESHOLD, p[0]),
+        (p[1] >= TEST_THRESHOLD, p[1]),
+        (p[2] >= TEST_THRESHOLD, p[2]),
+        (p[3] >= TEST_THRESHOLD, p[3])
+    ])
 }

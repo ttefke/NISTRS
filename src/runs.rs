@@ -16,13 +16,17 @@ use super::*;
 /// let data = BitsData::from_text("11001001000011111101101010100010001000010110100011000010001101001100010011000110011000101000101110000000".to_string());
 /// assert_eq!(runs_test(&data).1, 0.6953317934158357);
 /// ```
-pub fn runs_test(data: &BitsData) -> TestResultT {
+pub fn runs_test(data: &BitsData) -> Result<TestResultT, String> {
     let n_bits = data.len();
     let n_ones = data.ones();
 
+    if n_bits < 100 {
+        return Err("At least 100 bits are required to run the runs test.".to_string());
+    }
+
     let pi = (n_ones as f64) / (n_bits as f64);
-    if (pi - 0.5).abs() > (2.0 / (n_bits as f64).sqrt()) {
-        return (false, 0.5);
+    if (pi - 0.5).abs() >= (2.0 / (n_bits as f64).sqrt()) {
+        return Ok((false, 0.5));
     }
 
     let mut v = 1_usize;
@@ -36,5 +40,5 @@ pub fn runs_test(data: &BitsData) -> TestResultT {
         / (2_f64 * pi * (1_f64 - pi) * (2_f64 * (n_bits as f64)).sqrt());
     let p = erfc(erfc_arg);
 
-    (p >= TEST_THRESHOLD, p)
+    Ok((p >= TEST_THRESHOLD, p))
 }

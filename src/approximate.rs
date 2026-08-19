@@ -8,8 +8,12 @@ use super::*;
 /// overlapping blocks of two consecutive/adjacent lengths (m and m+1) against the expected result for a
 /// random sequence.
 /// `m` the length of each block – in this case, the first block length used in the test. m+1 is the second block length used.
-pub fn approximate_entropy_test(data: &BitsData, m: usize) -> TestResultT {
+pub fn approximate_entropy_test(data: &BitsData, m: usize) -> Result<TestResultT, String> {
     let n = data.len();
+
+    if m as f64 >= (n as f64).log2().floor() - 5.0 {
+        return Err("m and n must fulfil m < floor(log2(n)) - 5".to_string());
+    }
 
     let mut ap_en = [f64::default(); 2];
     let mut r = usize::default();
@@ -56,5 +60,5 @@ pub fn approximate_entropy_test(data: &BitsData, m: usize) -> TestResultT {
     let chi2 = 2_f64 * (n as f64) * (2_f64.ln() - apen);
     let p = gamma_ur(2_f64.powi(m as i32 - 1), chi2 / 2_f64);
 
-    (p >= TEST_THRESHOLD, p)
+    Ok((p >= TEST_THRESHOLD, p))
 }

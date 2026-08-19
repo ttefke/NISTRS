@@ -114,7 +114,7 @@ impl BitsData {
 
     /// Return the iterator for bit sequence.
     #[inline]
-    pub fn iter(&self) -> Iter<bool> {
+    pub fn iter(&self) -> Iter<'_, bool> {
         self.data.iter()
     }
 

@@ -28,7 +28,7 @@ use self::{
 
 use super::*;
 
-const MAX_NUM_OF_TEMPLATES: usize = 148;
+const MAX_NUM_OF_TEMPLATES: usize = 17622;
 
 /// Non-overlapping Template Matching Test.
 /// The focus of this test is the number of occurrences of pre-specified target strings. The purpose of this
@@ -46,8 +46,21 @@ pub fn non_overlapping_template_test(
     }
 
     const N: usize = 8;
-    let n_bits = data.len();
-    let m_blocks = n_bits / N;
+
+    if N > 100 {
+        return Err("N is too large!".to_string());
+    }
+
+    let n_bits = data.len(); // n_bits = n
+    let m_blocks = n_bits / N; // m_blocks = M
+
+    if m_blocks < n_bits / 100 {
+        return Err("M is too small!".to_string());
+    }
+
+    if n_bits / m_blocks != N {
+        return Err("N != n/M".to_string());
+    }
 
     let lambda = ((m_blocks - m + 1) as f64) / 2_f64.powi(m as i32);
     let sqr_var_wj = ((m_blocks as f64)

@@ -13,7 +13,7 @@ use super::*;
 /// zero. For certain types of non-random sequences, the excursions of this random walk from zero will be
 /// large.
 /// Return `P-values` for cusum-forward and cusum-reverse.
-pub fn cumulative_sums_test(data: &BitsData) -> [TestResultT; 2] {
+pub fn cumulative_sums_test(data: &BitsData) -> Result<[TestResultT; 2], String> {
     let mut s = isize::default();
     let mut sup = isize::default();
     let mut inf = isize::default();
@@ -40,6 +40,11 @@ pub fn cumulative_sums_test(data: &BitsData) -> [TestResultT; 2] {
     }
 
     let n = data.len();
+
+    if n < 100 {
+        return Err("n must be at least 100".to_string());
+    }
+
     let sqrtn = (n as f64).sqrt();
 
     let mut begin = (-(n as isize) / z + 1) / 4;
@@ -76,7 +81,7 @@ pub fn cumulative_sums_test(data: &BitsData) -> [TestResultT; 2] {
 
     let p1 = 1_f64 - sum1 + sum2;
 
-    [(p0 >= TEST_THRESHOLD, p0), (p1 >= TEST_THRESHOLD, p1)]
+    Ok([(p0 >= TEST_THRESHOLD, p0), (p1 >= TEST_THRESHOLD, p1)])
 }
 
 fn normal(x: f64) -> f64 {

@@ -17,13 +17,17 @@ use super::*;
 /// let data = BitsData::from_text("11001001000011111101101010100010001000010110100011000010001101001100010011000110011000101000101110001100".to_string());
 /// assert_eq!(frequency_test(&data).1, 0.11666446478102338);
 /// ```
-pub fn frequency_test(data: &super::BitsData) -> TestResultT {
+pub fn frequency_test(data: &super::BitsData) -> Result<TestResultT, String> {
     let ones = data.ones();
     let nbits = data.len();
+
+    if nbits < 100 {
+        return Err("At least 100 bits are required to run the frequency test.".to_string());
+    }
 
     let sn = 2 * ones as isize - nbits as isize;
     let sobs = sn.abs() as f64 / (nbits as f64).sqrt();
     let p = erfc(sobs / 2.0_f64.sqrt());
 
-    (p >= TEST_THRESHOLD, p)
+    Ok((p >= TEST_THRESHOLD, p))
 }

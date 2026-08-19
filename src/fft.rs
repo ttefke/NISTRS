@@ -10,8 +10,12 @@ use rustfft::{num_complex::Complex, Fft, FftPlanner, FftPlannerAvx, FftPlannerSs
 /// of this test is to detect periodic features (i.e., repetitive patterns that are near each other) in the tested
 /// sequence that would indicate a deviation from the assumption of randomness. The intention is to detect
 /// whether the number of peaks exceeding the 95 % threshold is significantly different than 5 %.
-pub fn fft_test(data: &BitsData) -> TestResultT {
+pub fn fft_test(data: &BitsData) -> Result<TestResultT, String> {
     let n = data.len();
+
+    if n < 1_000 {
+        return Err("At least 1,000 bits are required to run the DFT test".to_string());
+    }
 
     type FftType = f64;
 
@@ -56,5 +60,5 @@ pub fn fft_test(data: &BitsData) -> TestResultT {
     let d = (count as f64 - 0.95 * n as f64 / 2_f64) / (n as f64 / 4.0 * 0.95 * 0.05).sqrt();
     let p = erfc(d.abs() / 2_f64.sqrt());
 
-    (p > TEST_THRESHOLD, p)
+    Ok((p > TEST_THRESHOLD, p))
 }

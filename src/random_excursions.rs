@@ -58,6 +58,11 @@ pub fn random_excursions_test(data: &BitsData) -> Result<[TestResultT; 8], Strin
     ];
 
     let n = data.len();
+
+    if n < 1_000_000 {
+        return Err("n must be at least 1000000".to_string());
+    }
+
     let max_iteration = 1000.max(n);
 
     let mut s_k = vec![isize::default(); n];

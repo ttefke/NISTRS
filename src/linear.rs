@@ -12,13 +12,26 @@ use super::*;
 /// determine whether or not the sequence is complex enough to be considered random. Random sequences
 /// are characterized by longer LFSRs. An LFSR that is too short implies non-randomness.
 /// `m` The length in bits of a block.
-pub fn linear_complexity_test(data: &BitsData, m: usize) -> TestResultT {
+pub fn linear_complexity_test(data: &BitsData, m: usize) -> Result<TestResultT, String> {
     const K: usize = 6;
     const PI: [f64; 7] = [
         0.01047, 0.03125, 0.12500, 0.50000, 0.25000, 0.06250, 0.020833,
     ];
 
+    if data.len() < 1_000_000 {
+        return Err("n must be at least 1,000,000".to_string());
+    }
+
+    if m < 500 || m > 5_000 {
+        return Err("m must be between 500 and 5,000".to_string());
+    }
+
     let n = data.len() / m;
+
+    if n < 200 {
+        return Err("N ist smaller than 200, result is invalid".to_string());
+    }
+
     let sign = match (m + 1) % 2 {
         0 => -1_i8,
         _ => 1_i8,
@@ -100,5 +113,5 @@ pub fn linear_complexity_test(data: &BitsData, m: usize) -> TestResultT {
 
     let p = gamma_ur((K as f64) / 2_f64, chi2 / 2_f64);
 
-    (p > TEST_THRESHOLD, p)
+    Ok((p > TEST_THRESHOLD, p))
 }
